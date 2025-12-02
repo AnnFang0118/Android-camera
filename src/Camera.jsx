@@ -110,36 +110,42 @@ export default function Camera() {
   }
 
   return (
-    <div className="relative w-screen h-screen bg-black overflow-hidden">
+    <div className="relative w-screen h-screen bg-gray-900 overflow-hidden flex items-center justify-center">
       {error && (
         <div className="absolute top-10 left-0 w-full text-center text-red-500 bg-white p-2 z-50">
           {error}
         </div>
       )}
 
-      {/* Video Preview */}
-      <video
-        ref={videoRef}
-        className="absolute top-0 left-0 w-full h-full object-cover"
-        playsInline
-        muted
-      />
+      {/* Constrained Video Preview */}
+      <div className="relative w-[90%] max-w-2xl aspect-[1.586] rounded-lg overflow-hidden shadow-2xl">
+        <video
+          ref={videoRef}
+          className="w-full h-full object-cover"
+          playsInline
+          muted
+        />
 
-      {/* ID Card Overlay */}
-      <div className="absolute inset-0 pointer-events-none z-10 flex items-center justify-center">
-        <div className="w-[85%] aspect-[1.586] border-2 border-white/70 rounded-lg shadow-[0_0_0_9999px_rgba(0,0,0,0.5)] relative">
-          <div className="absolute top-0 left-0 w-4 h-4 border-t-4 border-l-4 border-white -mt-1 -ml-1 rounded-tl"></div>
-          <div className="absolute top-0 right-0 w-4 h-4 border-t-4 border-r-4 border-white -mt-1 -mr-1 rounded-tr"></div>
-          <div className="absolute bottom-0 left-0 w-4 h-4 border-b-4 border-l-4 border-white -mb-1 -ml-1 rounded-bl"></div>
-          <div className="absolute bottom-0 right-0 w-4 h-4 border-b-4 border-r-4 border-white -mb-1 -mr-1 rounded-br"></div>
-          <p className="absolute -top-8 w-full text-center text-white text-sm font-medium shadow-black drop-shadow-md">
-            Align ID Card Here
-          </p>
+        {/* ID Card Overlay Frame */}
+        <div className="absolute inset-0 pointer-events-none z-10 flex items-center justify-center">
+          <div className="w-[95%] h-[95%] border-2 border-white/70 rounded-lg relative">
+            <div className="absolute top-0 left-0 w-4 h-4 border-t-4 border-l-4 border-white -mt-1 -ml-1 rounded-tl"></div>
+            <div className="absolute top-0 right-0 w-4 h-4 border-t-4 border-r-4 border-white -mt-1 -mr-1 rounded-tr"></div>
+            <div className="absolute bottom-0 left-0 w-4 h-4 border-b-4 border-l-4 border-white -mb-1 -ml-1 rounded-bl"></div>
+            <div className="absolute bottom-0 right-0 w-4 h-4 border-b-4 border-r-4 border-white -mb-1 -mr-1 rounded-br"></div>
+          </div>
         </div>
       </div>
 
+      {/* Instructions */}
+      <div className="absolute top-8 left-0 w-full px-6 z-20 text-center">
+        <p className="text-white text-sm bg-black/50 backdrop-blur-sm rounded-lg p-3 inline-block">
+          📸 Align your ID card within the frame
+        </p>
+      </div>
+
       {/* Bottom Controls */}
-      <div className="absolute bottom-0 left-0 w-full p-8 pb-12 z-20 flex flex-col items-center gap-4 bg-gradient-to-t from-black/80 to-transparent">
+      <div className="absolute bottom-0 left-0 w-full p-8 pb-12 z-20 flex flex-col items-center gap-4">
         <p className="text-white/80 text-sm">Optimized for main camera clarity</p>
 
         {/* Shutter Button */}
