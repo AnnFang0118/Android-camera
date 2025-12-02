@@ -1,26 +1,103 @@
-
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 
 /**
- * React component: Native camera priority.
- * Main button triggers native camera for guaranteed clarity.
- * Preview shows ID card alignment guide.
+ * React component: Low-resolution camera to trigger macro lens.
+ * Uses 720p resolution to encourage browser to select close-focus capable lens.
  */
 export default function Camera() {
-  const fileInputRef = useRef(null);
+  const videoRef = useRef(null);
+  const streamRef = useRef(null);
   const [photoUrl, setPhotoUrl] = useState(null);
+  const [error, setError] = useState(null);
 
-  // Handle native file input
-  function handleNativeCapture(e) {
-    const file = e.target.files[0];
-    if (file) {
-      setPhotoUrl(URL.createObjectURL(file));
+  // Initialize preview on mount
+  useEffect(() => {
+    async function startCamera() {
+      try {
+        // Low resolution to trigger macro/wide-angle lens selection
+        const constraints = {
+          video: {
+            facingMode: "environment",
+            width: { ideal: 1280 },  // 嘗試中等解析度
+            height: { ideal: 720 }   // 很多輔助鏡頭的最高解析度就在這附近
+          }
+        };
+
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        streamRef.current = stream;
+
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          await videoRef.current.play();
+
+          // Apply continuous focus if available
+          const track = stream.getVideoTracks()[0];
+          const capabilities = track.getCapabilities();
+
+          if (capabilities.focusMode && capabilities.focusMode.includes('continuous')) {
+            await track.applyConstraints({ advanced: [{ focusMode: 'continuous' }] });
+          }
+        }
+      } catch (err) {
+        console.error('Error starting camera:', err);
+        setError('Could not start camera. Please ensure permissions are granted.');
+      }
+    }
+
+    startCamera();
+
+    return () => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, []);
+
+  // Capture photo using ImageCapture or Canvas fallback
+  async function capturePhoto() {
+    const stream = streamRef.current;
+    if (!stream) return;
+
+    const track = stream.getVideoTracks()[0];
+    const imageCapture = new window.ImageCapture(track);
+
+    try {
+      const blob = await imageCapture.takePhoto();
+      setPhotoUrl(URL.createObjectURL(blob));
+    } catch (err) {
+      console.warn('ImageCapture failed, falling back to canvas:', err);
+
+      const video = videoRef.current;
+      if (!video) return;
+
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0);
+
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
+      setPhotoUrl(dataUrl);
     }
   }
 
   return (
-    <div className="relative w-screen h-screen bg-black overflow-hidden flex items-center justify-center">
-      {/* ID Card Overlay Guide */}
+    <div className="relative w-screen h-screen bg-black overflow-hidden">
+      {error && (
+        <div className="absolute top-10 left-0 w-full text-center text-red-500 bg-white p-2 z-50">
+          {error}
+        </div>
+      )}
+
+      {/* Video Preview */}
+      <video
+        ref={videoRef}
+        className="absolute top-0 left-0 w-full h-full object-cover"
+        playsInline
+        muted
+      />
+
+      {/* ID Card Overlay */}
       <div className="absolute inset-0 pointer-events-none z-10 flex items-center justify-center">
         <div className="w-[85%] aspect-[1.586] border-2 border-white/70 rounded-lg shadow-[0_0_0_9999px_rgba(0,0,0,0.5)] relative">
           <div className="absolute top-0 left-0 w-4 h-4 border-t-4 border-l-4 border-white -mt-1 -ml-1 rounded-tl"></div>
@@ -33,36 +110,17 @@ export default function Camera() {
         </div>
       </div>
 
-      {/* Instructions */}
-      <div className="absolute top-20 left-0 w-full px-6 z-20 text-center">
-        <p className="text-white text-lg font-medium bg-black/50 backdrop-blur-sm rounded-lg p-4 inline-block">
-          📸 Tap the button below to open your camera
-        </p>
-      </div>
-
       {/* Bottom Controls */}
       <div className="absolute bottom-0 left-0 w-full p-8 pb-12 z-20 flex flex-col items-center gap-4 bg-gradient-to-t from-black/80 to-transparent">
-        <p className="text-white/80 text-sm">Uses your phone's native camera for best quality</p>
+        <p className="text-white/80 text-sm">Using macro lens for close-up clarity</p>
 
-        {/* Main Camera Button */}
+        {/* Shutter Button */}
         <button
-          onClick={() => fileInputRef.current?.click()}
-          className="w-24 h-24 bg-white rounded-full border-4 border-white/50 shadow-lg active:scale-95 transition-transform flex items-center justify-center text-4xl"
+          onClick={capturePhoto}
+          className="w-20 h-20 bg-white rounded-full border-4 border-white/50 shadow-lg active:scale-95 transition-transform"
           aria-label="Take Photo"
-        >
-          📷
-        </button>
+        />
       </div>
-
-      {/* Hidden File Input */}
-      <input
-        type="file"
-        accept="image/*"
-        capture="environment"
-        ref={fileInputRef}
-        onChange={handleNativeCapture}
-        className="hidden"
-      />
 
       {/* Photo Preview Modal */}
       {photoUrl && (
