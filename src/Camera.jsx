@@ -117,8 +117,8 @@ export default function Camera() {
         </div>
       )}
 
-      {/* Constrained Video Preview */}
-      <div className="relative w-[90%] max-w-2xl aspect-[1.586] rounded-lg overflow-hidden shadow-2xl">
+      {/* Constrained Video Preview - 300x300px */}
+      <div className="relative w-[300px] h-[300px] rounded-lg overflow-hidden shadow-2xl">
         <video
           ref={videoRef}
           className="w-full h-full object-cover"
