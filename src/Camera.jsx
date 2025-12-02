@@ -51,15 +51,17 @@ export default function Camera() {
             const track = stream.getVideoTracks()[0];
             try {
               // Re-apply focus constraints to ensure focus mode is activated
+              // Including macro mode and extreme close-up distance (5cm)
               await track.applyConstraints({
                 advanced: [
                   { focusMode: 'continuous' },
-                  { focusDistance: 0.15 } // Attempt to lock near distance
+                  { focusMode: 'macro' },        // Force macro focus mode
+                  { focusDistance: 0.05 }        // Lock at 5cm (0.05m) for ID cards
                 ]
               });
-              console.log('✅ Focus optimization applied');
+              console.log('✅ Macro focus optimization applied');
             } catch (e) {
-              console.warn('⚠️ Focus optimization failed (expected on some devices):', e);
+              console.warn('⚠️ Macro focus optimization failed (expected on some devices):', e);
               // Ignore failure, but we tried our best
             }
           }, 500); // 500ms short delay
