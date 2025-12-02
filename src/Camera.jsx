@@ -1,109 +1,14 @@
-import React, { useRef, useState, useEffect } from 'react';
+
+import React, { useRef, useState } from 'react';
 
 /**
- * React component: Hybrid camera solution.
- * - In-app preview with ID card overlay and torch support.
- * - Fallback to native system camera for maximum clarity.
+ * React component: Native camera priority.
+ * Main button triggers native camera for guaranteed clarity.
+ * Preview shows ID card alignment guide.
  */
 export default function Camera() {
-  const videoRef = useRef(null);
-  const streamRef = useRef(null);
   const fileInputRef = useRef(null);
   const [photoUrl, setPhotoUrl] = useState(null);
-  const [error, setError] = useState(null);
-  const [hasTorch, setHasTorch] = useState(false);
-  const [torchOn, setTorchOn] = useState(false);
-
-  // Initialize preview on mount
-  useEffect(() => {
-    async function startCamera() {
-      try {
-        const constraints = {
-          video: {
-            facingMode: { ideal: 'environment' },
-            width: { ideal: 1920 },
-            height: { ideal: 1080 },
-            focusMode: { ideal: 'continuous' }
-          }
-        };
-
-        const stream = await navigator.mediaDevices.getUserMedia(constraints);
-        streamRef.current = stream;
-
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          await videoRef.current.play();
-
-          // Check for torch capability
-          const track = stream.getVideoTracks()[0];
-          const capabilities = track.getCapabilities();
-          if (capabilities.torch) {
-            setHasTorch(true);
-          }
-
-          // Apply continuous focus if available
-          if (capabilities.focusMode && capabilities.focusMode.includes('continuous')) {
-            await track.applyConstraints({ advanced: [{ focusMode: 'continuous' }] });
-          }
-        }
-      } catch (err) {
-        console.error('Error starting camera:', err);
-        setError('Could not start camera. Please ensure permissions are granted.');
-      }
-    }
-
-    startCamera();
-
-    return () => {
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop());
-      }
-    };
-  }, []);
-
-  // Toggle Torch
-  async function toggleTorch() {
-    const stream = streamRef.current;
-    if (!stream) return;
-    const track = stream.getVideoTracks()[0];
-
-    try {
-      await track.applyConstraints({
-        advanced: [{ torch: !torchOn }]
-      });
-      setTorchOn(!torchOn);
-    } catch (err) {
-      console.error('Error toggling torch:', err);
-    }
-  }
-
-  // Capture photo using ImageCapture (high res) or Canvas fallback
-  async function capturePhoto() {
-    const stream = streamRef.current;
-    if (!stream) return;
-
-    const track = stream.getVideoTracks()[0];
-    const imageCapture = new window.ImageCapture(track);
-
-    try {
-      const blob = await imageCapture.takePhoto();
-      setPhotoUrl(URL.createObjectURL(blob));
-    } catch (err) {
-      console.warn('ImageCapture failed, falling back to canvas:', err);
-
-      const video = videoRef.current;
-      if (!video) return;
-
-      const canvas = document.createElement('canvas');
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(video, 0, 0);
-
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
-      setPhotoUrl(dataUrl);
-    }
-  }
 
   // Handle native file input
   function handleNativeCapture(e) {
@@ -114,22 +19,8 @@ export default function Camera() {
   }
 
   return (
-    <div className="relative w-screen h-screen bg-black overflow-hidden">
-      {error && (
-        <div className="absolute top-10 left-0 w-full text-center text-red-500 bg-white p-2 z-50">
-          {error}
-        </div>
-      )}
-
-      {/* Video Preview */}
-      <video
-        ref={videoRef}
-        className="absolute top-0 left-0 w-full h-full object-cover"
-        playsInline
-        muted
-      />
-
-      {/* ID Card Overlay */}
+    <div className="relative w-screen h-screen bg-black overflow-hidden flex items-center justify-center">
+      {/* ID Card Overlay Guide */}
       <div className="absolute inset-0 pointer-events-none z-10 flex items-center justify-center">
         <div className="w-[85%] aspect-[1.586] border-2 border-white/70 rounded-lg shadow-[0_0_0_9999px_rgba(0,0,0,0.5)] relative">
           <div className="absolute top-0 left-0 w-4 h-4 border-t-4 border-l-4 border-white -mt-1 -ml-1 rounded-tl"></div>
@@ -142,42 +33,25 @@ export default function Camera() {
         </div>
       </div>
 
-      {/* Top Controls */}
-      <div className="absolute top-0 left-0 w-full p-4 z-20 flex justify-between items-start bg-gradient-to-b from-black/50 to-transparent">
-        {hasTorch && (
-          <button
-            onClick={toggleTorch}
-            className={`p-3 rounded-full backdrop-blur-md transition-colors ${torchOn ? 'bg-yellow-400/80 text-black' : 'bg-white/20 text-white'}`}
-          >
-            {torchOn ? '🔦 On' : '⚡ Off'}
-          </button>
-        )}
+      {/* Instructions */}
+      <div className="absolute top-20 left-0 w-full px-6 z-20 text-center">
+        <p className="text-white text-lg font-medium bg-black/50 backdrop-blur-sm rounded-lg p-4 inline-block">
+          📸 Tap the button below to open your camera
+        </p>
       </div>
 
       {/* Bottom Controls */}
-      <div className="absolute bottom-0 left-0 w-full p-8 pb-12 z-20 flex flex-col items-center gap-6 bg-gradient-to-t from-black/80 to-transparent">
-        <div className="flex items-center justify-center w-full gap-8">
-          {/* Native Camera Button */}
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            className="flex flex-col items-center gap-1 text-white/80 active:text-white transition-colors"
-          >
-            <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
-              📷
-            </div>
-            <span className="text-xs">System Cam</span>
-          </button>
+      <div className="absolute bottom-0 left-0 w-full p-8 pb-12 z-20 flex flex-col items-center gap-4 bg-gradient-to-t from-black/80 to-transparent">
+        <p className="text-white/80 text-sm">Uses your phone's native camera for best quality</p>
 
-          {/* Shutter Button */}
-          <button
-            onClick={capturePhoto}
-            className="w-20 h-20 bg-white rounded-full border-4 border-white/50 shadow-lg active:scale-95 transition-transform"
-            aria-label="Take Photo"
-          />
-
-          {/* Spacer to balance layout */}
-          <div className="w-10"></div>
-        </div>
+        {/* Main Camera Button */}
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          className="w-24 h-24 bg-white rounded-full border-4 border-white/50 shadow-lg active:scale-95 transition-transform flex items-center justify-center text-4xl"
+          aria-label="Take Photo"
+        >
+          📷
+        </button>
       </div>
 
       {/* Hidden File Input */}
