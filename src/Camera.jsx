@@ -18,8 +18,8 @@ export default function Camera() {
         const constraints = {
           video: {
             facingMode: { ideal: 'environment' },
-            width: { ideal: 4096 },
-            height: { ideal: 2160 },
+            width: { ideal: 1920 },
+            height: { ideal: 1080 },
             focusMode: { ideal: 'continuous' } // Attempt to force continuous focus
           }
         };
