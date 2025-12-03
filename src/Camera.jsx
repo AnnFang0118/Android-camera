@@ -164,23 +164,27 @@ export default function Camera() {
         </div>
       )}
 
-      {/* Full Screen Video Preview - Optimized for Mobile */}
-      <div className="relative w-full h-full flex items-center justify-center">
-        <video
-          ref={videoRef}
-          className="w-full h-full object-cover"
-          playsInline
-          muted
-        />
+      {/* Video Preview - Balanced size for clarity */}
+      <div className="relative w-full h-full flex items-center justify-center bg-black">
+        {/* Video container - large but maintains aspect ratio for clarity */}
+        <div className="relative w-full h-full flex items-center justify-center px-2">
+          <video
+            ref={videoRef}
+            className="max-w-full max-h-[calc(100vh-200px)] w-auto h-auto object-contain"
+            playsInline
+            muted
+            autoPlay
+          />
 
-        {/* ID Card Overlay Frame - Responsive sizing for mobile */}
-        <div className="absolute inset-0 pointer-events-none z-10 flex items-center justify-center px-4">
-          <div className="w-full max-w-[85%] aspect-[1.6] border-2 border-white/80 rounded-lg relative shadow-2xl">
-            {/* Corner markers */}
-            <div className="absolute top-0 left-0 w-6 h-6 border-t-4 border-l-4 border-white -mt-1 -ml-1 rounded-tl"></div>
-            <div className="absolute top-0 right-0 w-6 h-6 border-t-4 border-r-4 border-white -mt-1 -mr-1 rounded-tr"></div>
-            <div className="absolute bottom-0 left-0 w-6 h-6 border-b-4 border-l-4 border-white -mb-1 -ml-1 rounded-bl"></div>
-            <div className="absolute bottom-0 right-0 w-6 h-6 border-b-4 border-r-4 border-white -mb-1 -mr-1 rounded-br"></div>
+          {/* ID Card Overlay Frame - Centered */}
+          <div className="absolute inset-0 pointer-events-none z-10 flex items-center justify-center px-4">
+            <div className="w-full max-w-[85%] aspect-[1.6] border-2 border-white/90 rounded-lg relative shadow-2xl">
+              {/* Corner markers */}
+              <div className="absolute top-0 left-0 w-5 h-5 border-t-3 border-l-3 border-white -mt-0.5 -ml-0.5 rounded-tl"></div>
+              <div className="absolute top-0 right-0 w-5 h-5 border-t-3 border-r-3 border-white -mt-0.5 -mr-0.5 rounded-tr"></div>
+              <div className="absolute bottom-0 left-0 w-5 h-5 border-b-3 border-l-3 border-white -mb-0.5 -ml-0.5 rounded-bl"></div>
+              <div className="absolute bottom-0 right-0 w-5 h-5 border-b-3 border-r-3 border-white -mb-0.5 -mr-0.5 rounded-br"></div>
+            </div>
           </div>
         </div>
       </div>
