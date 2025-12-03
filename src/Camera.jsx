@@ -160,9 +160,9 @@ export default function Camera() {
         <div 
           className="relative flex items-center justify-center mx-auto my-auto"
           style={{
-            width: 'min(600px, 90vw)',
+            width: 'min(750px, 95vw)',
             paddingBottom: '75%', // 4:3 aspect ratio (3/4 = 0.75)
-            maxWidth: '90vw',
+            maxWidth: '95vw',
             position: 'relative'
           }}
         >
