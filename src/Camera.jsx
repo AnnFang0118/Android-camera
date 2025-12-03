@@ -8,11 +8,11 @@ import React, { useRef, useState, useEffect } from 'react';
  * 2. After 500ms delay, apply macro focus optimization:
  *    - Continuous focus mode for stability
  *    - Macro mode for extreme close-up clarity
- *    - Lock focus distance at 12cm (0.12m) for ID card clarity
+ *    - Lock focus distance at 5cm (0.05m) for optimal 5-10cm range
  * 
  * This ensures:
  * - Main camera selection (high resolution)
- * - Locked close-up focus (12cm distance)
+ * - Locked close-up focus (5-10cm range)
  * - Clear text capture on ID cards
  */
 export default function Camera() {
@@ -65,15 +65,15 @@ export default function Camera() {
               // Apply optimal focus settings for close-up ID card photography
               // 1. Continuous focus for stability
               // 2. Macro mode for extreme close-up clarity
-              // 3. Lock focus distance at 12cm (0.12m) for ID card clarity
+              // 3. Lock focus distance at 5cm (0.05m) for optimal ID card text clarity
               await track.applyConstraints({
                 advanced: [
                   { focusMode: 'continuous' },   // Continuous focus for stability
                   { focusMode: 'macro' },         // Force macro focus mode (extreme close-up)
-                  { focusDistance: 0.12 }         // Lock at 12cm (0.12m) for ID cards
+                  { focusDistance: 0.05 }         // Lock at 5cm (0.05m) for ID cards - optimal for 5-10cm range
                 ]
               });
-              console.log('✅ Macro focus optimization applied: 12cm focus distance');
+              console.log('✅ Macro focus optimization applied: 5cm focus distance');
             } catch (e) {
               console.warn('⚠️ Macro focus optimization failed (expected on some devices):', e);
               // Ignore failure, but we tried our best
