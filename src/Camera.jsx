@@ -156,12 +156,22 @@ export default function Camera() {
 
       {/* Video Preview - Compact size for mobile */}
       <div className="relative w-full h-full flex items-center justify-center bg-black">
-        {/* Video container - much smaller, centered */}
-        <div className="relative w-[85vw] max-w-[400px] h-[60vh] max-h-[500px] flex items-center justify-center mx-auto my-auto">
+        {/* Video container - fixed small size for mobile with inline styles */}
+        <div 
+          className="relative flex items-center justify-center mx-auto my-auto"
+          style={{
+            width: 'min(300px, 90vw)',
+            height: 'min(400px, 50vh)',
+            maxWidth: '90vw',
+            maxHeight: '50vh'
+          }}
+        >
           <video
             ref={videoRef}
-            className="w-full h-full object-contain"
+            className="object-contain"
             style={{
+              width: '100%',
+              height: '100%',
               imageRendering: 'auto',
               WebkitImageRendering: 'auto',
               transform: 'translateZ(0)', // Force hardware acceleration
