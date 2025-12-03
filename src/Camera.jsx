@@ -29,26 +29,26 @@ export default function Camera() {
     async function startCamera() {
       try {
         // Step 1: Optimal constraints for Android ID card recognition
-        // Request high resolution to select main rear camera, with exposure optimization
+        // Request maximum resolution to ensure highest quality
         const optimalConstraints = {
           video: {
             // 1. Force rear camera with exact constraint
             facingMode: { exact: 'environment' },
 
-            // 2. Request high resolution (2K-4K) to guide camera selection
-            // More practical for Android devices while ensuring main camera selection
-            width: { min: 1920, ideal: 2560, max: 4096 },   // Min 1080p, ideal 2K, max 4K
-            height: { min: 1080, ideal: 1440, max: 2160 },  // Min 1080p, ideal 2K, max 4K
+            // 2. Request maximum resolution - prioritize quality over compatibility
+            // Higher min values to force better cameras
+            width: { min: 2560, ideal: 3840, max: 4096 },   // Min 2K, ideal 4K, max 4K
+            height: { min: 1440, ideal: 2160, max: 2160 },  // Min 2K, ideal 4K, max 4K
 
-            // 3. Request stable frame rate (lower for better quality)
+            // 3. Request stable frame rate
             frameRate: { ideal: 30, max: 30 },
 
             // 4. Initial settings for exposure and white balance
             advanced: [
-              { focusMode: 'single' },           // Single focus for precise locking (better for static docs)
-              { whiteBalanceMode: 'auto' },       // Auto white balance for accurate colors
+              { focusMode: 'single' },           // Single focus for precise locking
+              { whiteBalanceMode: 'auto' },       // Auto white balance
               { exposureMode: 'auto' },           // Auto exposure
-              { exposureCompensation: 0.0 }      // Neutral exposure compensation
+              { exposureCompensation: 0.0 }      // Neutral exposure
             ]
           }
         };
@@ -60,6 +60,14 @@ export default function Camera() {
           videoRef.current.srcObject = stream;
           await videoRef.current.play();
 
+          // Log actual video resolution for debugging
+          const track = stream.getVideoTracks()[0];
+          const settings = track.getSettings();
+          console.log('✅ Camera stream obtained');
+          console.log('📹 Actual resolution:', settings.width, 'x', settings.height);
+          console.log('📹 Frame rate:', settings.frameRate);
+          console.log('📹 Facing mode:', settings.facingMode);
+
           console.log('✅ Successfully obtained stream. Applying focus optimization for ID card recognition...');
 
           // Delayed focus optimization for Android ID card recognition
@@ -68,19 +76,32 @@ export default function Camera() {
             const track = stream.getVideoTracks()[0];
             try {
               // Apply optimal settings for ID card recognition on Android
-              // 1. Single focus mode first (better for static documents, locks precisely)
-              // 2. Macro mode for close-up clarity
-              // 3. Focus distance at 10cm (optimal for ID card distance 10-15cm)
-              // 4. Slight positive exposure compensation for text clarity
+              // Try multiple focus strategies for best clarity
               await track.applyConstraints({
                 advanced: [
-                  { focusMode: 'single' },           // Single focus for precise locking (better for static docs)
+                  { focusMode: 'single' },           // Single focus for precise locking
                   { focusMode: 'macro' },             // Macro mode for close-up clarity
-                  { focusDistance: 0.10 },            // Lock at 10cm (0.10m) - optimal for 10-15cm ID card range
-                  { exposureCompensation: 0.3 }       // Slight positive exposure for better text visibility
+                  { focusDistance: 0.08 },            // Lock at 8cm (0.08m) - closer for better text clarity
+                  { exposureCompensation: 0.2 }        // Moderate exposure for text visibility
                 ]
               });
-              console.log('✅ ID card focus optimization applied: 10cm focus distance, optimized for recognition');
+              console.log('✅ ID card focus optimization applied: 8cm focus distance');
+              
+              // Try to trigger focus again after a short delay for better results
+              setTimeout(async () => {
+                try {
+                  await track.applyConstraints({
+                    advanced: [
+                      { focusMode: 'single' },
+                      { focusMode: 'macro' },
+                      { focusDistance: 0.08 }
+                    ]
+                  });
+                  console.log('✅ Focus re-applied for better clarity');
+                } catch (e) {
+                  // Ignore if fails
+                }
+              }, 300);
             } catch (e) {
               console.warn('⚠️ Focus optimization failed, trying fallback settings:', e);
               // Fallback: try simpler settings if advanced constraints fail
@@ -171,9 +192,16 @@ export default function Camera() {
           <video
             ref={videoRef}
             className="max-w-full max-h-[calc(100vh-200px)] w-auto h-auto object-contain"
+            style={{
+              imageRendering: 'auto',
+              WebkitImageRendering: 'auto',
+              transform: 'translateZ(0)', // Force hardware acceleration
+              backfaceVisibility: 'hidden'
+            }}
             playsInline
             muted
             autoPlay
+            preload="auto"
           />
 
           {/* ID Card Overlay Frame - Centered */}
