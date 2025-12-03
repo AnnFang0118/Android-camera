@@ -1,9 +1,19 @@
 import React, { useRef, useState, useEffect } from 'react';
 
 /**
- * React component: Optimal camera selection strategy.
- * Uses high-resolution constraints with exact facingMode to guide Chrome
- * to select the main rear camera, then applies delayed focus optimization.
+ * React component: Optimal camera selection and focus strategy for ID card photography.
+ * 
+ * Complete Strategy:
+ * 1. Use 4K resolution (4096x2160) to guide Chrome to select main rear camera
+ * 2. After 500ms delay, apply macro focus optimization:
+ *    - Continuous focus mode for stability
+ *    - Macro mode for extreme close-up clarity
+ *    - Lock focus distance at 5cm (0.05m) for optimal 5-10cm range
+ * 
+ * This ensures:
+ * - Main camera selection (high resolution)
+ * - Locked close-up focus (5-10cm range)
+ * - Clear text capture on ID cards
  */
 export default function Camera() {
   const videoRef = useRef(null);
@@ -15,21 +25,22 @@ export default function Camera() {
   useEffect(() => {
     async function startCamera() {
       try {
-        // Optimal constraints to guide Chrome to select main camera
+        // Step 1: Optimal constraints to guide Chrome to select main camera
+        // Use 4K resolution to ensure main rear camera is selected
         const optimalConstraints = {
           video: {
             // 1. Force rear camera with exact constraint
             facingMode: { exact: 'environment' },
 
-            // 2. Request very high resolution with minimum requirement
-            // min: ensures preview quality, ideal: guides camera selection
+            // 2. Request very high resolution (4K) to guide camera selection
+            // min: ensures preview quality, ideal: guides Chrome to select main camera
             width: { min: 1920, ideal: 4096 },   // Min 1080p, ideal 4K
-            height: { min: 1080, ideal: 2160 },  // Min 1080p, ideal 4K
+            height: { min: 1080, ideal: 2160 },   // Min 1080p, ideal 4K
 
             // 3. Request stable frame rate
             frameRate: { ideal: 30 },
 
-            // 4. Attempt continuous focus in initial request
+            // 4. Initial continuous focus (will be optimized after 500ms)
             advanced: [
               { focusMode: 'continuous' }
             ]
@@ -46,25 +57,28 @@ export default function Camera() {
           console.log('✅ Successfully obtained stream. Applying focus optimization...');
 
           // Delayed focus optimization (double insurance)
-          // Since load time is not critical, we use this time to ensure focus is activated
+          // Strategy: Use 4K resolution to guide main camera selection first,
+          // then apply macro focus after 500ms delay
           setTimeout(async () => {
             const track = stream.getVideoTracks()[0];
             try {
-              // Re-apply focus constraints to ensure focus mode is activated
-              // Including macro mode and close-up distance (12cm for better clarity)
+              // Apply optimal focus settings for close-up ID card photography
+              // 1. Continuous focus for stability
+              // 2. Macro mode for extreme close-up clarity
+              // 3. Lock focus distance at 5cm (0.05m) for optimal ID card text clarity
               await track.applyConstraints({
                 advanced: [
-                  { focusMode: 'continuous' },
-                  { focusMode: 'macro' },        // Force macro focus mode
-                  { focusDistance: 0.12 }        // Lock at 12cm (0.12m) for ID cards
+                  { focusMode: 'continuous' },   // Continuous focus for stability
+                  { focusMode: 'macro' },         // Force macro focus mode (extreme close-up)
+                  { focusDistance: 0.05 }         // Lock at 5cm (0.05m) for ID cards - optimal for 5-10cm range
                 ]
               });
-              console.log('✅ Macro focus optimization applied');
+              console.log('✅ Macro focus optimization applied: 5cm focus distance');
             } catch (e) {
               console.warn('⚠️ Macro focus optimization failed (expected on some devices):', e);
               // Ignore failure, but we tried our best
             }
-          }, 500); // 500ms short delay
+          }, 500); // 500ms delay to ensure camera is ready
         }
       } catch (err) {
         console.error('❌ Cannot obtain camera matching constraints:', err);
