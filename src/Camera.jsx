@@ -161,16 +161,18 @@ export default function Camera() {
           className="relative flex items-center justify-center mx-auto my-auto"
           style={{
             width: 'min(600px, 90vw)',
-            height: 'min(450px, 60vh)',
+            paddingBottom: '75%', // 4:3 aspect ratio (3/4 = 0.75)
             maxWidth: '90vw',
-            maxHeight: '60vh',
-            aspectRatio: '4/3'
+            position: 'relative'
           }}
         >
           <video
             ref={videoRef}
             className="object-contain"
             style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
               width: '100%',
               height: '100%',
               imageRendering: 'auto',
