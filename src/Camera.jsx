@@ -154,10 +154,10 @@ export default function Camera() {
         </div>
       )}
 
-      {/* Video Preview - Optimized size for mobile */}
+      {/* Video Preview - Smaller size for mobile */}
       <div className="relative w-full h-full flex items-center justify-center bg-black">
-        {/* Video container - constrained size for mobile */}
-        <div className="relative w-full max-w-[90vw] h-[calc(100vh-220px)] flex items-center justify-center px-4">
+        {/* Video container - smaller constrained size */}
+        <div className="relative w-full max-w-[70vw] h-[calc(100vh-240px)] flex items-center justify-center px-4">
           <video
             ref={videoRef}
             className="w-full h-full object-contain"
@@ -173,9 +173,9 @@ export default function Camera() {
             preload="auto"
           />
 
-          {/* ID Card Overlay Frame - Centered */}
+          {/* ID Card Overlay Frame - Centered and smaller */}
           <div className="absolute inset-0 pointer-events-none z-10 flex items-center justify-center px-4">
-            <div className="w-full max-w-[75%] aspect-[1.6] border-2 border-white/90 rounded-lg relative shadow-2xl">
+            <div className="w-full max-w-[65%] aspect-[1.6] border-2 border-white/90 rounded-lg relative shadow-2xl">
               {/* Corner markers */}
               <div className="absolute top-0 left-0 w-5 h-5 border-t-3 border-l-3 border-white -mt-0.5 -ml-0.5 rounded-tl"></div>
               <div className="absolute top-0 right-0 w-5 h-5 border-t-3 border-r-3 border-white -mt-0.5 -mr-0.5 rounded-tr"></div>
