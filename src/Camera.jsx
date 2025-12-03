@@ -1,22 +1,19 @@
 import React, { useRef, useState, useEffect } from 'react';
 
 /**
- * React component: Optimized camera settings for ID card recognition on Android.
+ * React component: Optimal camera selection and focus strategy for ID card photography.
  * 
- * Complete Strategy for Android ID Card Recognition:
- * 1. Request high resolution (4K) to select main rear camera
- * 2. Apply exposure and white balance optimization
- * 3. After 800ms delay, apply optimal focus settings:
- *    - Single focus mode for precise locking (better for static documents)
- *    - Macro mode for close-up clarity
- *    - Focus distance at 5cm (0.05m) - PROVEN OPTIMAL for maximum clarity
- *    - Exposure compensation for text clarity
+ * Complete Strategy:
+ * 1. Use 4K resolution (4096x2160) to guide Chrome to select main rear camera
+ * 2. After 500ms delay, apply macro focus optimization:
+ *    - Continuous focus mode for stability
+ *    - Macro mode for extreme close-up clarity
+ *    - Lock focus distance at 5cm (0.05m) for optimal 5-10cm range
  * 
  * This ensures:
  * - Main camera selection (high resolution)
- * - Optimal focus distance at 5cm for clearest text capture
- * - Clear text capture suitable for OCR recognition
- * - Stable exposure for consistent results
+ * - Locked close-up focus (5-10cm range)
+ * - Clear text capture on ID cards
  */
 export default function Camera() {
   const videoRef = useRef(null);
@@ -28,27 +25,24 @@ export default function Camera() {
   useEffect(() => {
     async function startCamera() {
       try {
-        // Step 1: Optimal constraints for Android ID card recognition
-        // Request maximum resolution to ensure highest quality
+        // Step 1: Optimal constraints to guide Chrome to select main camera
+        // Use 4K resolution to ensure main rear camera is selected
         const optimalConstraints = {
           video: {
             // 1. Force rear camera with exact constraint
             facingMode: { exact: 'environment' },
 
-            // 2. Request maximum resolution - prioritize quality over compatibility
-            // Higher min values to force better cameras
-            width: { min: 2560, ideal: 3840, max: 4096 },   // Min 2K, ideal 4K, max 4K
-            height: { min: 1440, ideal: 2160, max: 2160 },  // Min 2K, ideal 4K, max 4K
+            // 2. Request very high resolution (4K) to guide camera selection
+            // min: ensures preview quality, ideal: guides Chrome to select main camera
+            width: { min: 1920, ideal: 4096 },   // Min 1080p, ideal 4K
+            height: { min: 1080, ideal: 2160 },   // Min 1080p, ideal 4K
 
             // 3. Request stable frame rate
-            frameRate: { ideal: 30, max: 30 },
+            frameRate: { ideal: 30 },
 
-            // 4. Initial settings for exposure and white balance
+            // 4. Initial continuous focus (will be optimized after 500ms)
             advanced: [
-              { focusMode: 'single' },           // Single focus for precise locking
-              { whiteBalanceMode: 'auto' },       // Auto white balance
-              { exposureMode: 'auto' },           // Auto exposure
-              { exposureCompensation: 0.0 }      // Neutral exposure
+              { focusMode: 'continuous' }
             ]
           }
         };
@@ -68,56 +62,31 @@ export default function Camera() {
           console.log('📹 Frame rate:', settings.frameRate);
           console.log('📹 Facing mode:', settings.facingMode);
 
-          console.log('✅ Successfully obtained stream. Applying focus optimization for ID card recognition...');
+          console.log('✅ Successfully obtained stream. Applying focus optimization...');
 
-          // Delayed focus optimization for Android ID card recognition
-          // Strategy: Wait longer (800ms) for camera to stabilize, then apply optimal settings
+          // Delayed focus optimization (double insurance)
+          // Strategy: Use 4K resolution to guide main camera selection first,
+          // then apply macro focus after 500ms delay
           setTimeout(async () => {
             const track = stream.getVideoTracks()[0];
             try {
-              // Apply optimal settings for ID card recognition on Android
-              // 5cm focus distance - proven to be clearest based on testing
+              // Apply optimal focus settings for close-up ID card photography
+              // 1. Continuous focus for stability
+              // 2. Macro mode for extreme close-up clarity
+              // 3. Lock focus distance at 5cm (0.05m) for optimal ID card text clarity
               await track.applyConstraints({
                 advanced: [
-                  { focusMode: 'single' },           // Single focus for precise locking
-                  { focusMode: 'macro' },             // Macro mode for close-up clarity
-                  { focusDistance: 0.05 },            // Lock at 5cm (0.05m) - optimal for clarity
-                  { exposureCompensation: 0.2 }        // Moderate exposure for text visibility
+                  { focusMode: 'continuous' },   // Continuous focus for stability
+                  { focusMode: 'macro' },         // Force macro focus mode (extreme close-up)
+                  { focusDistance: 0.05 }         // Lock at 5cm (0.05m) for ID cards - optimal for 5-10cm range
                 ]
               });
-              console.log('✅ ID card focus optimization applied: 5cm focus distance (optimal clarity)');
-              
-              // Try to trigger focus again after a short delay for better results
-              setTimeout(async () => {
-                try {
-                  await track.applyConstraints({
-                    advanced: [
-                      { focusMode: 'single' },
-                      { focusMode: 'macro' },
-                      { focusDistance: 0.05 }         // 5cm - proven optimal
-                    ]
-                  });
-                  console.log('✅ Focus re-applied at 5cm for better clarity');
-                } catch (e) {
-                  // Ignore if fails
-                }
-              }, 300);
+              console.log('✅ Macro focus optimization applied: 5cm focus distance');
             } catch (e) {
-              console.warn('⚠️ Focus optimization failed, trying fallback settings:', e);
-              // Fallback: try simpler settings if advanced constraints fail
-              try {
-                await track.applyConstraints({
-                  advanced: [
-                    { focusMode: 'single' },
-                    { focusMode: 'macro' }
-                  ]
-                });
-                console.log('✅ Fallback focus settings applied');
-              } catch (fallbackErr) {
-                console.warn('⚠️ Fallback settings also failed (some devices may not support these):', fallbackErr);
-              }
+              console.warn('⚠️ Macro focus optimization failed (expected on some devices):', e);
+              // Ignore failure, but we tried our best
             }
-          }, 800); // 800ms delay for better camera stabilization on Android
+          }, 500); // 500ms delay to ensure camera is ready
         }
       } catch (err) {
         console.error('❌ Cannot obtain camera matching constraints:', err);
