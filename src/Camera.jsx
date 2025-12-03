@@ -80,8 +80,8 @@ export default function Camera() {
                   { focusMode: 'continuous' },   // Continuous focus for stability
                   { focusMode: 'macro' },         // Force macro focus mode (extreme close-up)
                   { focusDistance: 0.05 },        // Lock at 5cm (0.05m) for ID cards - optimal for 5-10cm range
-                  { exposureMode: 'manual' },     // Manual exposure for consistency
-                  { exposureCompensation: 0.2 },   // Slight positive exposure for text visibility
+                  { exposureMode: 'auto' },       // Auto exposure for better brightness
+                  { exposureCompensation: 0.5 },   // Increased exposure for brighter image
                   { whiteBalanceMode: 'auto' }     // Auto white balance for accurate colors
                 ]
               });
@@ -141,7 +141,7 @@ export default function Camera() {
     
     // Apply contrast and brightness adjustment for text clarity
     const contrast = 1.2;  // Increase contrast
-    const brightness = 5;   // Slight brightness increase
+    const brightness = 20;  // Increased brightness for better visibility
     
     for (let i = 0; i < data.length; i += 4) {
       // Apply contrast
