@@ -154,35 +154,35 @@ export default function Camera() {
         </div>
       )}
 
-      {/* Video Preview - Large size for mobile */}
+      {/* Video Preview - Compact size for mobile */}
       <div className="relative w-full h-full flex items-center justify-center bg-black">
-        {/* Video container - large size with explicit dimensions */}
+        {/* Video container - small fixed size */}
         <div 
           className="relative flex items-center justify-center"
           style={{
-            width: '65vw',
-            height: '48.75vw', // 4:3 ratio (65vw * 0.75)
-            maxWidth: '500px',
-            maxHeight: '375px',
-            minWidth: '280px',
-            minHeight: '210px',
+            width: '400px',
+            height: '300px',
+            maxWidth: '60vw',
+            maxHeight: '45vw',
             position: 'relative',
-            margin: 'auto'
+            margin: 'auto',
+            boxSizing: 'border-box'
           }}
         >
           <video
             ref={videoRef}
-            className="object-cover"
             style={{
-              width: '100% !important',
-              height: '100% !important',
-              minWidth: '100%',
-              minHeight: '100%',
+              width: '400px',
+              height: '300px',
+              maxWidth: '60vw',
+              maxHeight: '45vw',
+              objectFit: 'cover',
               imageRendering: 'auto',
               WebkitImageRendering: 'auto',
               transform: 'translateZ(0)',
               backfaceVisibility: 'hidden',
-              display: 'block'
+              display: 'block',
+              boxSizing: 'border-box'
             }}
             playsInline
             muted
