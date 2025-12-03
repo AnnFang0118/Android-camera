@@ -160,10 +160,10 @@ export default function Camera() {
         <div 
           className="relative flex items-center justify-center"
           style={{
-            width: '90vw',
-            height: '67.5vw', // 4:3 ratio (90vw * 0.75)
-            maxWidth: '800px',
-            maxHeight: '600px',
+            width: '75vw',
+            height: '56.25vw', // 4:3 ratio (75vw * 0.75)
+            maxWidth: '600px',
+            maxHeight: '450px',
             minWidth: '300px',
             minHeight: '225px',
             position: 'relative',
