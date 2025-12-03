@@ -74,17 +74,48 @@ export default function Camera() {
               // 1. Continuous focus for stability
               // 2. Macro mode for extreme close-up clarity
               // 3. Lock focus distance at 5cm (0.05m) for optimal ID card text clarity
+              // 4. Optimize exposure for text clarity
               await track.applyConstraints({
                 advanced: [
                   { focusMode: 'continuous' },   // Continuous focus for stability
                   { focusMode: 'macro' },         // Force macro focus mode (extreme close-up)
-                  { focusDistance: 0.05 }         // Lock at 5cm (0.05m) for ID cards - optimal for 5-10cm range
+                  { focusDistance: 0.05 },        // Lock at 5cm (0.05m) for ID cards - optimal for 5-10cm range
+                  { exposureMode: 'manual' },     // Manual exposure for consistency
+                  { exposureCompensation: 0.2 },   // Slight positive exposure for text visibility
+                  { whiteBalanceMode: 'auto' }     // Auto white balance for accurate colors
                 ]
               });
               console.log('✅ Macro focus optimization applied: 5cm focus distance');
+              
+              // Additional focus trigger after 200ms for better locking
+              setTimeout(async () => {
+                try {
+                  await track.applyConstraints({
+                    advanced: [
+                      { focusMode: 'single' },     // Single focus to lock
+                      { focusMode: 'macro' },
+                      { focusDistance: 0.05 }
+                    ]
+                  });
+                  console.log('✅ Additional focus lock applied');
+                } catch (e) {
+                  // Ignore if fails
+                }
+              }, 200);
             } catch (e) {
-              console.warn('⚠️ Macro focus optimization failed (expected on some devices):', e);
-              // Ignore failure, but we tried our best
+              console.warn('⚠️ Macro focus optimization failed, trying simpler settings:', e);
+              // Fallback: try simpler settings
+              try {
+                await track.applyConstraints({
+                  advanced: [
+                    { focusMode: 'continuous' },
+                    { focusMode: 'macro' }
+                  ]
+                });
+                console.log('✅ Fallback focus settings applied');
+              } catch (fallbackErr) {
+                console.warn('⚠️ Fallback settings also failed:', fallbackErr);
+              }
             }
           }, 500); // 500ms delay to ensure camera is ready
         }
@@ -103,11 +134,47 @@ export default function Camera() {
     };
   }, []);
 
+  // Apply image enhancement for better clarity
+  function enhanceImage(ctx, canvas) {
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imageData.data;
+    
+    // Apply contrast and brightness adjustment for text clarity
+    const contrast = 1.2;  // Increase contrast
+    const brightness = 5;   // Slight brightness increase
+    
+    for (let i = 0; i < data.length; i += 4) {
+      // Apply contrast
+      data[i] = Math.min(255, Math.max(0, (data[i] - 128) * contrast + 128 + brightness));     // R
+      data[i + 1] = Math.min(255, Math.max(0, (data[i + 1] - 128) * contrast + 128 + brightness)); // G
+      data[i + 2] = Math.min(255, Math.max(0, (data[i + 2] - 128) * contrast + 128 + brightness)); // B
+      // Alpha channel (i + 3) remains unchanged
+    }
+    
+    ctx.putImageData(imageData, 0, 0);
+  }
+
   // Capture photo using ImageCapture or Canvas fallback
-  // Optimized for ID card recognition - maximum quality
+  // Optimized for ID card recognition - maximum quality with enhancement
   async function capturePhoto() {
     const stream = streamRef.current;
     if (!stream) return;
+
+    // Trigger focus lock before capturing for best clarity
+    try {
+      const track = stream.getVideoTracks()[0];
+      await track.applyConstraints({
+        advanced: [
+          { focusMode: 'single' },
+          { focusMode: 'macro' },
+          { focusDistance: 0.05 }
+        ]
+      });
+      // Wait a bit for focus to lock
+      await new Promise(resolve => setTimeout(resolve, 100));
+    } catch (e) {
+      console.warn('Focus lock before capture failed:', e);
+    }
 
     const track = stream.getVideoTracks()[0];
     const imageCapture = new window.ImageCapture(track);
@@ -119,12 +186,29 @@ export default function Camera() {
         imageHeight: 2160,
         fillLightMode: 'auto'  // Auto fill light for better exposure
       });
-      setPhotoUrl(URL.createObjectURL(blob));
-      console.log('✅ Photo captured using ImageCapture API (high quality)');
+      
+      // Apply image enhancement
+      const img = new Image();
+      img.src = URL.createObjectURL(blob);
+      await new Promise((resolve) => {
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0);
+          enhanceImage(ctx, canvas);
+          const enhancedDataUrl = canvas.toDataURL('image/jpeg', 0.98);
+          setPhotoUrl(enhancedDataUrl);
+          URL.revokeObjectURL(img.src);
+          resolve();
+        };
+      });
+      console.log('✅ Photo captured and enhanced using ImageCapture API');
     } catch (err) {
       console.warn('ImageCapture failed, falling back to canvas:', err);
 
-      // Fallback to canvas with maximum quality
+      // Fallback to canvas with maximum quality and enhancement
       const video = videoRef.current;
       if (!video) return;
 
@@ -139,10 +223,13 @@ export default function Camera() {
       ctx.imageSmoothingQuality = 'high';
       ctx.drawImage(video, 0, 0);
 
+      // Apply image enhancement for better clarity
+      enhanceImage(ctx, canvas);
+
       // Maximum quality JPEG (0.98 for best quality vs file size balance)
       const dataUrl = canvas.toDataURL('image/jpeg', 0.98);
       setPhotoUrl(dataUrl);
-      console.log('✅ Photo captured using Canvas fallback (resolution:', canvas.width, 'x', canvas.height, ')');
+      console.log('✅ Photo captured and enhanced using Canvas fallback (resolution:', canvas.width, 'x', canvas.height, ')');
     }
   }
 
