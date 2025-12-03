@@ -160,10 +160,11 @@ export default function Camera() {
         <div 
           className="relative flex items-center justify-center mx-auto my-auto"
           style={{
-            width: 'min(450px, 85vw)',
-            height: 'min(600px, 65vh)',
-            maxWidth: '85vw',
-            maxHeight: '65vh'
+            width: 'min(600px, 90vw)',
+            height: 'min(450px, 60vh)',
+            maxWidth: '90vw',
+            maxHeight: '60vh',
+            aspectRatio: '4/3'
           }}
         >
           <video
